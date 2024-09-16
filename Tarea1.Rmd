@@ -1,0 +1,80 @@
+---
+title: "Tarea1_C24067"
+output: html_document
+date: "2024-09-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1
+
+El Criterio de Información de Akaike (AIC) mide la calidad de un modelo ajustado en función de la cantidad de parámetros y la bondad del ajuste. La fórmula del AIC es:
+
+AIC = 2K - 2ln(L)
+
+donde k es el número de parámetros del modelo y L es la función de verosimilitud máxima del modelo. AIC penaliza los modelos más complejos, es decir, con más parámetros, para evitar sobreajuste. El modelo con el valor de AIC más bajo se considera mejor.
+
+## 2
+
+```{r}
+install.packages("univariateML")
+library(univariateML)
+install.packages("rriskDistributions")
+library(rriskDistributions)
+install.packages("boot")
+library(boot)
+```
+
+```{r}
+base_salarios <- read.csv("C:/Users/antho/OneDrive/Escritorio/Estadistica/Tarea1/BaseSalarios.csv", header = TRUE, sep = ";", stringsAsFactors = FALSE)
+base_salarios <- base_salarios[ , !(names(base_salarios) %in% c("X"))]
+sum(is.na(base_salarios$Coutas))
+
+```
+
+```{r}
+base_salarios <- na.omit(base_salarios)
+modelos <- model_select(base_salarios$Coutas, 
+                        distributions = c("exp", "gamma", "lnorm", "weibull", "unif", "lognormal"))
+
+print(modelos)
+```
+
+## 3
+
+```{r}
+ajuste_risk <- fit.cont(base_salarios$Coutas)
+
+print(ajuste_risk)
+```
+
+## 4
+
+
+
+## 5
+
+```{r}
+media_func <- function(data, indices) {
+  return(mean(data[indices]))
+}
+
+bootstrap_media <- boot(data = base_salarios$Coutas, statistic = media_func, R = 1000)
+
+ic_media <- boot.ci(bootstrap_media, type = "perc")
+print(ic_media)
+```
+
+```{r}
+sd_func <- function(data, indices) {
+  return(sd(data[indices]))
+}
+
+bootstrap_sd <- boot(data = base_salarios$Coutas, statistic = sd_func, R = 1000)
+
+ic_sd <- boot.ci(bootstrap_sd, type = "perc")
+print(ic_sd)
+```
+
