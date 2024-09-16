@@ -19,16 +19,16 @@ donde k es el número de parámetros del modelo y L es la función de verosimili
 ## 2
 
 ```{r}
-install.packages("univariateML")
+#install.packages("univariateML")
 library(univariateML)
-install.packages("rriskDistributions")
+#install.packages("rriskDistributions")
 library(rriskDistributions)
-install.packages("boot")
+#install.packages("boot")
 library(boot)
 ```
 
 ```{r}
-base_salarios <- read.csv("C:/Users/antho/OneDrive/Escritorio/Estadistica/Tarea1/BaseSalarios.csv", header = TRUE, sep = ";", stringsAsFactors = FALSE)
+base_salarios <- read.csv("BaseSalarios.csv", header = TRUE, sep = ";", stringsAsFactors = FALSE)
 base_salarios <- base_salarios[ , !(names(base_salarios) %in% c("X"))]
 sum(is.na(base_salarios$Coutas))
 
@@ -77,4 +77,65 @@ bootstrap_sd <- boot(data = base_salarios$Coutas, statistic = sd_func, R = 1000)
 ic_sd <- boot.ci(bootstrap_sd, type = "perc")
 print(ic_sd)
 ```
+
+# Ejercicio 2
+
+## 1
+
+```{r}
+hist(base_salarios$Coutas, main = "Histograma de la Cuotas", freq = F, xlab = "Cuotas", ylab = "Densidad")
+lines(density(base_salarios$Coutas), col = "aquamarine4", lwd = 2)
+```
+
+## 2
+
+### Biweight
+
+```{r}
+plot(density(base_salarios$Coutas, bw = "nrd0",  kernel = "biweight"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Bandwidth de Silverman", xlab = "Cuotas", ylab = "Densidad")
+```
+
+
+Respecto al "nrd0", fue tomado de: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/bandwidth
+
+### Gaussiana
+
+```{r}
+plot(density(base_salarios$Coutas, kernel = "gaussian"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Gaussiano", xlab = "Cuotas", ylab = "Densidad")
+```
+
+### Epanechnikov
+```{r}
+plot(density(base_salarios$Coutas, kernel = "epanechnikov"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Epanechnikov", xlab = "Cuotas", ylab = "Densidad")
+```
+
+### Coseno
+```{r}
+plot(density(base_salarios$Coutas, kernel = "cosine"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Coseno", xlab = "Cuotas", ylab = "Densidad")
+```
+
+### Uniforme
+```{r}
+plot(density(base_salarios$Coutas, kernel = "rectangular"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Rectangular", xlab = "Cuotas", ylab = "Densidad")
+```
+
+### Triangular
+```{r}
+plot(density(base_salarios$Coutas, kernel = "triangular"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Triangular", xlab = "Cuotas", ylab = "Densidad")
+```
+
+## 3
+
+```{r}
+(kernels <- eval(formals(density.default)$kernel))
+```
+
+```{r}
+plot(density(base_salarios$Coutas, kernel = "gaussian"), col = "black", lwd = 2, main = "Densidad de las Cuotas según kernel", xlab = "Cuotas", ylab = "Densidad")
+for(i in 2:length(kernels))
+lines(density(base_salarios$Coutas, kernel = kernels[i]), col = i, lwd = 2)
+legend("topright", legend = kernels, col = seq(kernels), lty = 1,lwd = 2,cex = 0.5)
+
+```
+
 
