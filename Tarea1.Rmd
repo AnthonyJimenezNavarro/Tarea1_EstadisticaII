@@ -8,73 +8,85 @@ date: "2024-09-13"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Parte III
+
 ## 1
 
-El Criterio de Información de Akaike (AIC) mide la calidad de un modelo ajustado en función de la cantidad de parámetros y la bondad del ajuste. La fórmula del AIC es:
+El Criterio de Información de Akaike (AIC) evalúa la calidad de un modelo ajustado considerando tanto la cantidad de parámetros como la calidad del ajuste. La fórmula del AIC es:
 
 AIC = 2K - 2ln(L)
 
-donde k es el número de parámetros del modelo y L es la función de verosimilitud máxima del modelo. AIC penaliza los modelos más complejos, es decir, con más parámetros, para evitar sobreajuste. El modelo con el valor de AIC más bajo se considera mejor.
+Donde k representa el número de parámetros del modelo y L es la función de máxima verosimilitud del modelo. El AIC penaliza los modelos más complejos, es decir, aquellos con más parámetros, para reducir el riesgo de sobreajuste. Se considera que el mejor modelo es aquel con el valor de AIC más bajo.
 
 ## 2
 
 ```{r}
-install.packages("univariateML")
 library(univariateML)
-install.packages("rriskDistributions")
 library(rriskDistributions)
-install.packages("boot")
-library(boot)
+library("fGarch")
 ```
 
 ```{r}
-base_salarios <- read.csv("C:/Users/antho/OneDrive/Escritorio/Estadistica/Tarea1/BaseSalarios.csv", header = TRUE, sep = ";", stringsAsFactors = FALSE)
-base_salarios <- base_salarios[ , !(names(base_salarios) %in% c("X"))]
-sum(is.na(base_salarios$Coutas))
-
-```
-
-```{r}
+base_salarios <- read.csv("C:/Users/antho/OneDrive/Escritorio/Estadistica/Tarea1_EstadisticaII/BaseSalarios.csv", header = TRUE, sep = ";", stringsAsFactors = FALSE)
+base_salarios <- base_salarios[, !names(base_salarios) %in% "X"]
 base_salarios <- na.omit(base_salarios)
-modelos <- model_select(base_salarios$Coutas, 
-                        distributions = c("exp", "gamma", "lnorm", "weibull", "unif", "lognormal"))
-
-print(modelos)
 ```
+
+```{r}
+valores <- model_select(base_salarios$Coutas)
+print(valores)
+mean_model <- as.numeric(valores["mean"])
+sd_model <- as.numeric(valores["sd"])
+nu_model <- as.numeric(valores["nu"])
+xi_model <- as.numeric(valores["xi"])
+
+L <- sum(dsged(base_salarios$Coutas, mean = mean_model, sd = sd_model, nu = nu_model, xi = xi_model, log = TRUE))
+k <- 4
+AIC_1 <- -2 * L + 2 * k
+
+exp <- mlexp(base_salarios$Coutas)
+gamma <- mlgamma(base_salarios$Coutas)
+lognormal <- mllnorm(base_salarios$Coutas)
+weibull <- mlweibull(base_salarios$Coutas)
+loggamma <- mllgamma(base_salarios$Coutas+1)
+uniform <- mlunif(base_salarios$Coutas)
+
+AIC_Calculados <- data.frame(
+  DistribuCION = c("Model_Select", "Exponential", "Gamma", "Lognormal", "Weibull", "Loggamma", "Uniform"),
+  AIC = c(AIC_1, 
+          AIC(exp), 
+          AIC(gamma), 
+          AIC(lognormal),
+          AIC(weibull), 
+          AIC(loggamma), 
+          AIC(uniform))
+)
+
+print(AIC_Calculados)
+```
+
+De la tabla se logra observar que el menor valor de AIC corresponde a la distribución Weibull, de forma que siguiendo el Criterio de Información de Akaike es elije este.
 
 ## 3
 
 ```{r}
 ajuste_risk <- fit.cont(base_salarios$Coutas)
-
 print(ajuste_risk)
 ```
 
 ## 4
 
-
+Del punto 2 se observa que la distribución que mejor se ajuste corresponde a Weibull, pero del punto 3, al utilizar fit.cont(), podemos observar que la distribución Gompertz, presenta un valor de AIC menor al resto, de forma que resulta la más adecuada, pero ya que esta no formaba parte del inciso, se decide tomar la segunda mejor que corresponde a Weibull.
 
 ## 5
 
 ```{r}
-media_func <- function(data, indices) {
-  return(mean(data[indices]))
-}
+bootstrap <- bootstrapml(weibull, reps = 1000, map = function(x) c(mean = mean(x), sd = sd(x)))
 
-bootstrap_media <- boot(data = base_salarios$Coutas, statistic = media_func, R = 1000)
+IC_mean <- c(bootstrap[1,1], bootstrap[1,2])
+IC_sd <- c(bootstrap[2,1], bootstrap[2,2])
 
-ic_media <- boot.ci(bootstrap_media, type = "perc")
-print(ic_media)
-```
-
-```{r}
-sd_func <- function(data, indices) {
-  return(sd(data[indices]))
-}
-
-bootstrap_sd <- boot(data = base_salarios$Coutas, statistic = sd_func, R = 1000)
-
-ic_sd <- boot.ci(bootstrap_sd, type = "perc")
-print(ic_sd)
+print(IC_mean)
+print(IC_sd)
 ```
 
