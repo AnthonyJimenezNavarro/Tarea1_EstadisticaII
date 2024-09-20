@@ -1,12 +1,118 @@
 ---
-title: "Tarea1_C24067"
-output: html_document
+title: "Tarea1"
+author:
+- Anthony Mauricio Jiménez Navarro | C24067
+- Henri Gerard Gabert Hidalgo | B93096
+- Juan Pablo Morgan Sandí | C15319
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float:
+      collapsed: true
+  pdf_document:
+    toc: true
 date: "2024-09-13"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+Se cargan los paquetes necesarios
+```{r}
+library(univariateML)
+library(rriskDistributions)
+library("fGarch")
+library(dplyr)
+library(ggplot2)
+library(ks)
+library(boot)
+```
+
+Se carga la base de datos
+```{r}
+base_salarios <- read.csv("BaseSalarios.csv", header = TRUE, sep = ";", stringsAsFactors = FALSE)
+base_salarios <- base_salarios[ , !(names(base_salarios) %in% c("X"))]
+base_salarios <- na.omit(base_salarios)
+
+# Eliminar cualquier símbolo no numérico (excepto comas y puntos)
+base_salarios$U..Salario <- gsub("[^0-9,\\.]", "", base_salarios$U..Salario)
+
+# Eliminar espacios en blanco
+base_salarios$U..Salario <- trimws(base_salarios$U..Salario)
+
+# Reemplazar comas decimales por puntos decimales
+base_salarios$U..Salario <- gsub(",", ".", base_salarios$U..Salario)
+
+# Convertir a numérico
+base_salarios$U..Salario <- as.numeric(base_salarios$U..Salario)
+
+```
+
+# Ejercicio 1
+
+## 1
+```{r}
+base_salarios$Nivel <- ifelse(base_salarios$Coutas < 150, 1, 2)
+```
+
+## 2
+```{r}
+analisis_descriptivo <- base_salarios %>%
+  group_by(Nivel) %>%
+  summarise(
+    Promedio_Salarios = mean(`U..Salario`, na.rm = TRUE),
+    Varianza_Salarios = var(`U..Salario`, na.rm = TRUE),
+    Cantidad_Salarios = n(),
+    Max_Salarios = max(`U..Salario`, na.rm = TRUE),
+    Min_Salarios = min(`U..Salario`, na.rm = TRUE),
+    
+    # Para Sexo, podemos contar la cantidad de hombres y mujeres por Nivel
+    Cantidad_Hombres = sum(Sexo == 1, na.rm = TRUE),
+    Cantidad_Mujeres = sum(Sexo == 2, na.rm = TRUE)
+  )
+```
+
+## 3
+
+Un boxplot es una representación gráfica que resume la distribución de un conjunto de datos, mostrando en el, los cuartiles, mínimo y máximo, siendo la caja el rango intercuartilico es decir la diferencia entre el Q3 y Q1, la línea dentro de la caja el Q2 es decir la mediana y las líneas que se alargan de las cajas, son conocidos como bigotes se extienden al máximo y mínimo, lo que esté por fuera son outliers. Por lo que los considero utiles por 3 motivos, 1. nos permiten ver más o menos una distribución de los datos, 2. es fácil ver o comparar esa distribución por grupos y 3. la fácil detección de outliers.
+
+## 4
+```{r}
+ggplot(base_salarios, aes(x = factor(Nivel), y = `U..Salario`, fill = factor(Nivel))) +
+  geom_boxplot() +
+  labs(
+    x = "Nivel",
+    y = "Salario",
+    title = "Comparación de Salarios entre Niveles"
+  ) +
+  theme_minimal() +
+  scale_fill_manual(values = c("#B63191", "skyblue")) +
+  theme(legend.position = "none")
+```
+## 5
+
+Al observar el gráfico, me gustaría decir que entre más cuotas ha aportado, más salario se percibe, pero no es cierto. Aunque, si lo vemos desde otro punto de vista, la mediana del grupo 2 es mayor. El promedio que nos da el análisis descriptivo es más alto, y tanto el valor máximo como el mínimo son superiores en el grupo 2. Incluso, la caja de aquellos que han pagado más de 150 cuotas se ubica más arriba, salarialmente hablando, que los que han pagado menos de 150, esto significa que el 75% de las personas del nivel 2 perciben un salario mayor que el 75% de las personas del nivel 1. En general, se puede concluir que el grupo que ha aportado más cuotas tiene una percepción salarial superior.
+
+Además, gracias al boxplot también se pueden observar varios outliers en ambos grupos, pero la cantidad es mayor en el grupo 2.
+
+
+## 6
+
+Vamos a realizar una prueba de hipótesis para comparar las medias salariales de aquellas personas que han aportado menos de 150 cuotas y de aquellos que han aportado más de 150.
+```{r}
+# Filtrar los salarios según el nivel
+salarios_nivel_1 <- base_salarios$U..Salario[base_salarios$Nivel == 1]
+salarios_nivel_2 <- base_salarios$U..Salario[base_salarios$Nivel == 2]
+
+# Realizar la prueba t
+resultado_t_test <- t.test(salarios_nivel_1, salarios_nivel_2)
+
+# Mostrar resultados de la prueba
+print(resultado_t_test)
+```
+Al obtener un p-valor de 2.2e-16 podemos concluir que el promedio salarial de los grupos es completamente diferente.
 
 # Ejercicio 2
 
@@ -79,22 +185,12 @@ Donde k representa el número de parámetros del modelo y L es la función de m�
 
 ## 2
 
-```{r}
-library(univariateML)
-library(rriskDistributions)
-library("fGarch")
-```
 
 ```{r}
 base_salarios <- read.csv("BaseSalarios.csv", header = TRUE, sep = ";", stringsAsFactors = FALSE)
-base_salarios <- base_salarios[ , !(names(base_salarios) %in% c("X"))]
-sum(is.na(base_salarios$Coutas))
-```
-
-```{r}
-base_salarios <- read.csv("C:/Users/antho/OneDrive/Escritorio/Estadistica/Tarea1_EstadisticaII/BaseSalarios.csv", header = TRUE, sep = ";", stringsAsFactors = FALSE)
 base_salarios <- base_salarios[, !names(base_salarios) %in% "X"]
 base_salarios <- na.omit(base_salarios)
+
 ```
 
 ```{r}
@@ -156,4 +252,63 @@ print(IC_sd)
 ```
 
 
+# Ejercicio 4
+
+## 1
+Del paquete ks de r, la función kde realiza una estimación de densidad mediante kernel, con bases de 1 a 6 variables, por lo que su la función nos facilita el estimar y visualizar la densidad de probabilidad de un conjunto de datos de manera no paramétrica, permitiendonos obtener una representación suave y continua de su distribución.
+
+```{r}
+densidad_kde <- kde(base_salarios$Coutas)
+
+plot(densidad_kde, xlab = "Cuotas",ylab = "Densidad",main = "Estimación de Densidad de Cuotas")
+```
+
+
+## 2
+Del paquete boot de r, la función boot.ci calcula 5 intervalos de confianza distintos, no parametricos (la aproximación normal de primer orden, el intervalo bootstrap básico, el intervalo bootstrap estudentizado, el intervalo de percentil bootstrap y el intervalo de percentil bootstrap ajustado (BCa)), basados en el método de bootstrap.
+
+
+
+## 3
+
+```{r}
+# Función para calcular la media
+
+
+# Bootstrap de la media de Cuotas
+result <- boot(data = base_salarios$Coutas,  statistic=function(y,indices) exp(mean(y[indices])) , R = 1000)
+
+# Media original
+media_original <- result$t0
+
+# Media bootstrap (t)
+media_bootstrap <- result$t
+
+plot(result)
+
+# Resultados
+cat("Media original:", media_original, "\n")
+cat("Media bootstrap:", media_bootstrap, "\n")
+
+# Histograma de las medias bootstrap
+hist(boot_result$t, 
+     main = "Histograma de Medias Bootstrap",
+     xlab = "Media Bootstrap de Cuotas",
+     col = "lightblue",
+     border = "black")
+
+```
+
+
+
+
+
+Sobre diagrama de cajas:
+JMP Statistical Discovery LLC (2024) Diagrama de caja: https://www.jmp.com/es_es/statistics-knowledge-portal/exploratory-data-analysis/box-plot.html
+
+Documentación de la función kde:  
+Tarn Duong(2024) Package ‘ks’: https://cran.r-project.org/web/packages/ks/ks.pdf
+
+Documentación de la función boot.ci :
+Angelo Canty(2024) Package ‘boot’: https://cran.r-project.org/web/packages/boot/boot.pdf
 
