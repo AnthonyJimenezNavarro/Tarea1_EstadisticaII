@@ -19,6 +19,8 @@ date: "2024-09-13"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Setup
+
 Se cargan los paquetes necesarios
 ```{r message=FALSE, warning=FALSE}
 library(univariateML)
@@ -91,6 +93,7 @@ ggplot(base_salarios, aes(x = factor(Nivel), y = `U..Salario`, fill = factor(Niv
   scale_fill_manual(values = c("#B63191", "skyblue")) +
   theme(legend.position = "none")
 ```
+
 ## 5
 
 Al observar el gráfico, me gustaría decir que entre más cuotas ha aportado, más salario se percibe, pero no es cierto. Aunque, si lo vemos desde otro punto de vista, la mediana del grupo 2 es mayor. El promedio que nos da el análisis descriptivo es más alto, y tanto el valor máximo como el mínimo son superiores en el grupo 2. Incluso, la caja de aquellos que han pagado más de 150 cuotas se ubica más arriba, salarialmente hablando, que los que han pagado menos de 150, esto significa que el 75% de las personas del nivel 2 perciben un salario mayor que el 75% de las personas del nivel 1. En general, se puede concluir que el grupo que ha aportado más cuotas tiene una percepción salarial superior.
@@ -137,7 +140,7 @@ plot(density(base_salarios$Coutas, bw = "nrd0",  kernel = "biweight"), col = "aq
 ```
 
 
-Respecto al "nrd0", fue tomado de: https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/bandwidth
+Respecto al "nrd0", fue tomado de (Bandwidth Function - RDocumentation, s.f.) 
 
 ### Gaussiana
 
@@ -319,13 +322,15 @@ hist(result$t,
 
 
 
+# Referencias
+Angelo Canty(2024) Package ‘boot’: https://cran.r-project.org/web/packages/boot/boot.pdf
 
-Sobre diagrama de cajas:
+bandwidth function - RDocumentation. (s.f.). https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/bandwidth
+
 JMP Statistical Discovery LLC (2024) Diagrama de caja: https://www.jmp.com/es_es/statistics-knowledge-portal/exploratory-data-analysis/box-plot.html
 
-Documentación de la función kde:  
 Tarn Duong(2024) Package ‘ks’: https://cran.r-project.org/web/packages/ks/ks.pdf
 
-Documentación de la función boot.ci :
-Angelo Canty(2024) Package ‘boot’: https://cran.r-project.org/web/packages/boot/boot.pdf
+
+
 
