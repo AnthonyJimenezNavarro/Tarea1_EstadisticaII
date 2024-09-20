@@ -1,5 +1,5 @@
 ---
-title: "Tarea1"
+title: "Tarea 1 - CA0307: Estadística Actuarial II"
 author:
 - Anthony Mauricio Jiménez Navarro | C24067
 - Henri Gerard Gabert Hidalgo | B93096
@@ -20,7 +20,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 Se cargan los paquetes necesarios
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(univariateML)
 library(rriskDistributions)
 library("fGarch")
@@ -119,15 +119,20 @@ Al obtener un p-valor de 2.2e-16 podemos concluir que el promedio salarial de lo
 ## 1
 
 ```{r}
+# Creamos el histograma con la columna Cuotas-
 hist(base_salarios$Coutas, main = "Histograma de la Cuotas", freq = F, xlab = "Cuotas", ylab = "Densidad")
+# Le añadimos la línea que representa la densidad.
 lines(density(base_salarios$Coutas), col = "aquamarine4", lwd = 2)
 ```
 
 ## 2
 
+Ahora, graficaremos, para cada kernel estudiado, la densidad de la variable cuotas.
+
 ### Biweight
 
 ```{r}
+# Graficamos con Kernel de Silverman.
 plot(density(base_salarios$Coutas, bw = "nrd0",  kernel = "biweight"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Bandwidth de Silverman", xlab = "Cuotas", ylab = "Densidad")
 ```
 
@@ -137,37 +142,49 @@ Respecto al "nrd0", fue tomado de: https://www.rdocumentation.org/packages/stats
 ### Gaussiana
 
 ```{r}
+# Graficamos con Kernel Gaussiano.
 plot(density(base_salarios$Coutas, kernel = "gaussian"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Gaussiano", xlab = "Cuotas", ylab = "Densidad")
 ```
 
 ### Epanechnikov
 ```{r}
+# Graficamos con Kernel de Epanechnikov.
 plot(density(base_salarios$Coutas, kernel = "epanechnikov"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Epanechnikov", xlab = "Cuotas", ylab = "Densidad")
 ```
 
 ### Coseno
 ```{r}
+# Graficamos con Kernel Coseno.
 plot(density(base_salarios$Coutas, kernel = "cosine"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Coseno", xlab = "Cuotas", ylab = "Densidad")
 ```
 
 ### Uniforme
 ```{r}
+# Graficamos con Kernel Uniforme.
 plot(density(base_salarios$Coutas, kernel = "rectangular"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Rectangular", xlab = "Cuotas", ylab = "Densidad")
 ```
 
 ### Triangular
 ```{r}
+# Graficamos con Kernel Triangular.
 plot(density(base_salarios$Coutas, kernel = "triangular"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Triangular", xlab = "Cuotas", ylab = "Densidad")
 ```
 
 ## 3
 
+Creamos un vector con los nombres de todos los kernels disponibles para la función density.
+
 ```{r}
 (kernels <- eval(formals(density.default)$kernel))
 ```
 
+Ahora, generamos el gráfico con todos a la vez, para apreciar las diferencias entre cada uno de estos.
+
 ```{r}
+# primero llamamos el kernel normal como base para el gráfico.
 plot(density(base_salarios$Coutas, kernel = "gaussian"), col = "black", lwd = 2, main = "Densidad de las Cuotas según kernel", xlab = "Cuotas", ylab = "Densidad")
+
+# creamos un ciclo for, para evaluar cada kernel, y añadirlo al gráfico.
 for(i in 2:length(kernels))
 lines(density(base_salarios$Coutas, kernel = kernels[i]), col = i, lwd = 2)
 legend("topright", legend = kernels, col = seq(kernels), lty = 1,lwd = 2,cex = 0.5)
@@ -291,7 +308,7 @@ cat("Media original:", media_original, "\n")
 cat("Media bootstrap:", media_bootstrap, "\n")
 
 # Histograma de las medias bootstrap
-hist(boot_result$t, 
+hist(result$t, 
      main = "Histograma de Medias Bootstrap",
      xlab = "Media Bootstrap de Cuotas",
      col = "lightblue",
