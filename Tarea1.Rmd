@@ -5,13 +5,13 @@ author:
 - Henri Gerard Gabert Hidalgo | B93096
 - Juan Pablo Morgan Sandí | C15319
 output:
+  pdf_document:
+    toc: true
   html_document:
     theme: flatly
     toc: true
     toc_float:
       collapsed: true
-  pdf_document:
-    toc: true
 date: "2024-09-13"
 ---
 
@@ -30,11 +30,14 @@ library(dplyr)
 library(ggplot2)
 library(ks)
 library(boot)
+library(pander)
+library(tinytex)
 ```
 
 Se carga la base de datos
 ```{r}
-base_salarios <- read.csv("BaseSalarios.csv", header = TRUE, sep = ";", stringsAsFactors = FALSE)
+base_salarios <- read.csv("BaseSalarios.csv", header = TRUE, sep = ";", 
+                          stringsAsFactors = FALSE)
 base_salarios <- base_salarios[ , !(names(base_salarios) %in% c("X"))]
 base_salarios <- na.omit(base_salarios)
 
@@ -74,6 +77,9 @@ analisis_descriptivo <- base_salarios %>%
     Cantidad_Hombres = sum(Sexo == 1, na.rm = TRUE),
     Cantidad_Mujeres = sum(Sexo == 2, na.rm = TRUE)
   )
+
+pander(analisis_descriptivo)
+
 ```
 
 ## 3
@@ -123,7 +129,8 @@ Al obtener un p-valor de 2.2e-16 podemos concluir que el promedio salarial de lo
 
 ```{r}
 # Creamos el histograma con la columna Cuotas-
-hist(base_salarios$Coutas, main = "Histograma de la Cuotas", freq = F, xlab = "Cuotas", ylab = "Densidad")
+hist(base_salarios$Coutas, main = "Histograma de la Cuotas", 
+     freq = F, xlab = "Cuotas", ylab = "Densidad")
 # Le añadimos la línea que representa la densidad.
 lines(density(base_salarios$Coutas), col = "aquamarine4", lwd = 2)
 ```
@@ -136,7 +143,10 @@ Ahora, graficaremos, para cada kernel estudiado, la densidad de la variable cuot
 
 ```{r}
 # Graficamos con Kernel de Silverman.
-plot(density(base_salarios$Coutas, bw = "nrd0",  kernel = "biweight"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Bandwidth de Silverman", xlab = "Cuotas", ylab = "Densidad")
+plot(density(base_salarios$Coutas, bw = "nrd0",  kernel = "biweight"), 
+     col = "aquamarine4", lwd = 2, 
+     main = "Densidad de las Cuotas según kernel Bandwidth de Silverman", 
+     xlab = "Cuotas", ylab = "Densidad")
 ```
 
 
@@ -146,31 +156,46 @@ Respecto al "nrd0", fue tomado de (Bandwidth Function - RDocumentation, s.f.)
 
 ```{r}
 # Graficamos con Kernel Gaussiano.
-plot(density(base_salarios$Coutas, kernel = "gaussian"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Gaussiano", xlab = "Cuotas", ylab = "Densidad")
+plot(density(base_salarios$Coutas, kernel = "gaussian"), 
+     col = "aquamarine4", lwd = 2, 
+     main = "Densidad de las Cuotas según kernel Gaussiano", 
+     xlab = "Cuotas", ylab = "Densidad")
 ```
 
 ### Epanechnikov
 ```{r}
 # Graficamos con Kernel de Epanechnikov.
-plot(density(base_salarios$Coutas, kernel = "epanechnikov"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Epanechnikov", xlab = "Cuotas", ylab = "Densidad")
+plot(density(base_salarios$Coutas, kernel = "epanechnikov"), 
+     col = "aquamarine4", lwd = 2,
+     main = "Densidad de las Cuotas según kernel Epanechnikov", 
+     xlab = "Cuotas", ylab = "Densidad")
 ```
 
 ### Coseno
 ```{r}
 # Graficamos con Kernel Coseno.
-plot(density(base_salarios$Coutas, kernel = "cosine"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Coseno", xlab = "Cuotas", ylab = "Densidad")
+plot(density(base_salarios$Coutas, kernel = "cosine"), 
+     col = "aquamarine4", lwd = 2, 
+     main = "Densidad de las Cuotas según kernel Coseno", 
+     xlab = "Cuotas", ylab = "Densidad")
 ```
 
 ### Uniforme
 ```{r}
 # Graficamos con Kernel Uniforme.
-plot(density(base_salarios$Coutas, kernel = "rectangular"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Rectangular", xlab = "Cuotas", ylab = "Densidad")
+plot(density(base_salarios$Coutas, kernel = "rectangular"), 
+     col = "aquamarine4", lwd = 2, 
+     main = "Densidad de las Cuotas según kernel Rectangular", 
+     xlab = "Cuotas", ylab = "Densidad")
 ```
 
 ### Triangular
 ```{r}
 # Graficamos con Kernel Triangular.
-plot(density(base_salarios$Coutas, kernel = "triangular"), col = "aquamarine4", lwd = 2, main = "Densidad de las Cuotas según kernel Triangular", xlab = "Cuotas", ylab = "Densidad")
+plot(density(base_salarios$Coutas, kernel = "triangular"), 
+     col = "aquamarine4", lwd = 2, 
+     main = "Densidad de las Cuotas según kernel Triangular", 
+     xlab = "Cuotas", ylab = "Densidad")
 ```
 
 ## 3
@@ -185,7 +210,10 @@ Ahora, generamos el gráfico con todos a la vez, para apreciar las diferencias e
 
 ```{r}
 # primero llamamos el kernel normal como base para el gráfico.
-plot(density(base_salarios$Coutas, kernel = "gaussian"), col = "black", lwd = 2, main = "Densidad de las Cuotas según kernel", xlab = "Cuotas", ylab = "Densidad")
+plot(density(base_salarios$Coutas, kernel = "gaussian"), 
+     col = "black", lwd = 2, 
+     main = "Densidad de las Cuotas según kernel", 
+     xlab = "Cuotas", ylab = "Densidad")
 
 # creamos un ciclo for, para evaluar cada kernel, y añadirlo al gráfico.
 for(i in 2:length(kernels))
@@ -207,7 +235,8 @@ Donde k representa el número de parámetros del modelo y L es la función de m�
 
 
 ```{r}
-base_salarios <- read.csv("BaseSalarios.csv", header = TRUE, sep = ";", stringsAsFactors = FALSE)
+base_salarios <- read.csv("BaseSalarios.csv", header = TRUE, sep = ";", 
+                          stringsAsFactors = FALSE)
 base_salarios <- base_salarios[, !names(base_salarios) %in% "X"]
 base_salarios <- na.omit(base_salarios)
 
@@ -221,7 +250,8 @@ sd_model <- as.numeric(valores["sd"])
 nu_model <- as.numeric(valores["nu"])
 xi_model <- as.numeric(valores["xi"])
 
-L <- sum(dsged(base_salarios$Coutas, mean = mean_model, sd = sd_model, nu = nu_model, xi = xi_model, log = TRUE))
+L <- sum(dsged(base_salarios$Coutas, mean = mean_model, sd = sd_model, 
+               nu = nu_model, xi = xi_model, log = TRUE))
 k <- 4
 AIC_1 <- -2 * L + 2 * k
 
@@ -233,7 +263,8 @@ loggamma <- mllgamma(base_salarios$Coutas+1)
 uniform <- mlunif(base_salarios$Coutas)
 
 AIC_Calculados <- data.frame(
-  DistribuCION = c("Model_Select", "Exponential", "Gamma", "Lognormal", "Weibull", "Loggamma", "Uniform"),
+  DistribuCION = c("Model_Select", "Exponential", "Gamma", "Lognormal", 
+                   "Weibull", "Loggamma", "Uniform"),
   AIC = c(AIC_1, 
           AIC(exp), 
           AIC(gamma), 
@@ -262,7 +293,8 @@ Del punto 2 se observa que la distribución que mejor se ajuste corresponde a We
 ## 5
 
 ```{r}
-bootstrap <- bootstrapml(weibull, reps = 1000, map = function(x) c(mean = mean(x), sd = sd(x)))
+bootstrap <- bootstrapml(weibull, reps = 1000, 
+                         map = function(x) c(mean = mean(x), sd = sd(x)))
 
 IC_mean <- c(bootstrap[1,1], bootstrap[1,2])
 IC_sd <- c(bootstrap[2,1], bootstrap[2,2])
@@ -280,7 +312,8 @@ Del paquete ks de r, la función kde realiza una estimación de densidad mediant
 ```{r}
 densidad_kde <- kde(base_salarios$Coutas)
 
-plot(densidad_kde, xlab = "Cuotas",ylab = "Densidad",main = "Estimación de Densidad de Cuotas")
+plot(densidad_kde, xlab = "Cuotas",ylab = "Densidad",
+     main = "Estimación de Densidad de Cuotas")
 ```
 
 
@@ -296,7 +329,9 @@ Del paquete boot de r, la función boot.ci calcula 5 intervalos de confianza dis
 
 
 # Bootstrap de la media de Cuotas
-result <- boot(data = base_salarios$Coutas,  statistic=function(y,indices) exp(mean(y[indices])) , R = 1000)
+result <- boot(data = base_salarios$Coutas,  
+               statistic=function(y,indices) exp(mean(y[indices])), 
+               R = 1000)
 
 # Media original
 media_original <- result$t0
@@ -308,7 +343,9 @@ plot(result)
 
 # Resultados
 cat("Media original:", media_original, "\n")
-cat("Media bootstrap:", media_bootstrap, "\n")
+
+print("Head de la media Bootstrap:")
+pander(head(media_bootstrap))
 
 # Histograma de las medias bootstrap
 hist(result$t, 
@@ -318,7 +355,6 @@ hist(result$t,
      border = "black")
 
 ```
-
 
 
 
